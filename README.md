@@ -1,7 +1,7 @@
 # Bad DOPO Cream POOB 2025-2
 
-Juan Esteban Rodriguez
-Sara Gonzalez
+- Juan Esteban Rodriguez
+- Sara Gonzalez
 
 POOB (Programación orientada a Objetos)
 
