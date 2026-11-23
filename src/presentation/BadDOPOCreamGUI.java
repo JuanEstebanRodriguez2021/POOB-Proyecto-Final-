@@ -11,58 +11,87 @@ public class BadDOPOCreamGUI extends JFrame {
 
     public BadDOPOCreamGUI() {
         setTitle("Bad DOPO Cream");
-        setSize(600, 500);
-        setLocationRelativeTo(null);
-        setResizable(false);
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(false);
 
         prepareElements();
         prepareActions();
 
+        pack();
+        setLocationRelativeTo(null);
         setVisible(true);
     }
 
     private void prepareElements() {
-        JPanel background = new JPanel() {
+
+        JPanel background = new JPanel(null) {
+
             @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
+            protected void paintComponent(Graphics graphics) {
+                super.paintComponent(graphics);
+
+                Graphics2D g = (Graphics2D) graphics.create();
+
+                g.setRenderingHint(
+                    RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR
+                );
 
                 BufferedImage image =
-                    SpriteManager.load("inicio.jpg");
+                    SpriteManager.load("inicio.png");
 
                 if (image != null) {
                     g.drawImage(
                         image,
-                        0, 0,
-                        getWidth(), getHeight(),
-                        this
+                        0,
+                        0,
+                        getWidth(),
+                        getHeight(),
+                        null
                     );
                 } else {
-                    g.setColor(new Color(20, 48, 78));
+                    g.setColor(new Color(40, 120, 190));
                     g.fillRect(
-                        0, 0, getWidth(), getHeight()
+                        0, 0,
+                        getWidth(),
+                        getHeight()
+                    );
+
+                    g.setColor(Color.WHITE);
+                    g.setFont(new Font(
+                        "SansSerif", Font.BOLD, 36
+                    ));
+
+                    g.drawString(
+                        "BAD DOPO CREAM",
+                        100, 240
                     );
                 }
+
+                g.dispose();
             }
         };
 
-        background.setLayout(null);
-        setContentPane(background);
-
-        playButton = new JButton("JUGAR");
-        playButton.setBounds(210, 365, 180, 55);
-
-        playButton.setFont(new Font(
-            "SansSerif", Font.BOLD, 22
-        ));
-
-        playButton.setBackground(
-            new Color(42, 161, 198)
+        background.setPreferredSize(
+            new Dimension(650, 650)
         );
 
-        playButton.setForeground(Color.WHITE);
-        playButton.setFocusPainted(false);
+        setContentPane(background);
+
+        playButton = SpriteManager.imageButton(
+            "Start.png",
+            "JUGAR",
+            220,
+            75
+        );
+
+        playButton.setBounds(
+            215,
+            535,
+            220,
+            75
+        );
 
         playButton.setCursor(
             Cursor.getPredefinedCursor(

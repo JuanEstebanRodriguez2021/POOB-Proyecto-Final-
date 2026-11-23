@@ -2,11 +2,10 @@ package presentation;
 
 import domain.CampaignGame;
 import domain.Flavor;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Map;
+import javax.swing.*;
 
 public class CampaignPanel extends JPanel {
 
@@ -17,7 +16,8 @@ public class CampaignPanel extends JPanel {
     private final Timer timer;
 
     private final int[][] directions = {
-        {0, 1}, {0, 1}
+        {0, 1},
+        {0, 1}
     };
 
     private JFrame frame;
@@ -35,6 +35,7 @@ public class CampaignPanel extends JPanel {
 
         setBackground(new Color(15, 40, 70));
         setFocusable(true);
+        setDoubleBuffered(true);
 
         configureControls();
 
@@ -60,14 +61,18 @@ public class CampaignPanel extends JPanel {
 
         bind("SPACE", "ice1", () -> {
             game.toggleIce(
-                1, directions[0][0], directions[0][1]
+                1,
+                directions[0][0],
+                directions[0][1]
             );
         });
 
         bind("ENTER", "ice2", () -> {
             if (game.getPlayers().size() == 2) {
                 game.toggleIce(
-                    2, directions[1][0], directions[1][1]
+                    2,
+                    directions[1][0],
+                    directions[1][1]
                 );
             }
         });
@@ -76,6 +81,8 @@ public class CampaignPanel extends JPanel {
             game.restart();
             previousLevel = 1;
             messageShown = false;
+            frame.setTitle("Bad DOPO Cream - Nivel 1");
+            timer.start();
         });
 
         bind("ESCAPE", "menu", () -> {
@@ -146,8 +153,8 @@ public class CampaignPanel extends JPanel {
                 int option = JOptionPane.showConfirmDialog(
                     this,
                     message
-                    + "\nPuntuación: " + game.getScore()
-                    + "\n¿Jugar nuevamente?",
+                        + "\nPuntuación: " + game.getScore()
+                        + "\n¿Jugar nuevamente?",
                     "Bad DOPO Cream",
                     JOptionPane.YES_NO_OPTION
                 );
@@ -156,11 +163,19 @@ public class CampaignPanel extends JPanel {
                     game.restart();
                     previousLevel = 1;
                     messageShown = false;
+
+                    if (frame != null) {
+                        frame.setTitle(
+                            "Bad DOPO Cream - Nivel 1"
+                        );
+                    }
+
                     timer.start();
                 } else {
                     if (frame != null) {
                         frame.dispose();
                     }
+
                     new GameSetupFrame();
                 }
 
@@ -180,6 +195,11 @@ public class CampaignPanel extends JPanel {
             RenderingHints.VALUE_ANTIALIAS_ON
         );
 
+        g.setRenderingHint(
+            RenderingHints.KEY_INTERPOLATION,
+            RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR
+        );
+
         drawBoard(g);
         drawIce(g);
         drawFruits(g);
@@ -194,20 +214,24 @@ public class CampaignPanel extends JPanel {
         for (int y = 0; y < CampaignGame.ROWS; y++) {
             for (int x = 0; x < CampaignGame.COLS; x++) {
                 SpriteManager.draw(
-                    g, "floor.jpg",
+                    g,
+                    "floor.jpg",
                     x * TILE,
                     HUD + y * TILE,
-                    TILE, TILE
+                    TILE,
+                    TILE
                 );
             }
         }
 
         for (Point p : game.getWalls()) {
             SpriteManager.draw(
-                g, "iceBlock.jpg",
+                g,
+                "iceBlock.jpg",
                 p.x * TILE,
                 HUD + p.y * TILE,
-                TILE, TILE
+                TILE,
+                TILE
             );
         }
     }
@@ -215,10 +239,12 @@ public class CampaignPanel extends JPanel {
     private void drawIce(Graphics2D g) {
         for (Point p : game.getIce()) {
             SpriteManager.draw(
-                g, "iceBlock.jpg",
+                g,
+                "iceBlock.jpg",
                 p.x * TILE,
                 HUD + p.y * TILE,
-                TILE, TILE
+                TILE,
+                TILE
             );
         }
     }
@@ -283,7 +309,7 @@ public class CampaignPanel extends JPanel {
                 TILE - 2
             );
 
-            g.setColor(Color.BLACK);
+            g.setColor(Color.WHITE);
             g.setFont(new Font(
                 "SansSerif", Font.BOLD, 12
             ));
@@ -331,6 +357,9 @@ public class CampaignPanel extends JPanel {
         status.append("    Frutas: ")
               .append(game.getFruits().size());
 
+        status.append("    Enemigos: ")
+              .append(game.getEnemies().size());
+
         g.drawString(status.toString(), 18, 55);
 
         g.setFont(new Font(
@@ -339,12 +368,12 @@ public class CampaignPanel extends JPanel {
 
         g.drawString(
             "P1: WASD + Espacio    "
-            + "P2: Flechas + Enter",
+                + "P2: Flechas + Enter",
             18, 75
         );
 
         g.drawString(
-            "R: Reiniciar     ESC: Menú",
+            "R: Reiniciar     ESC: Menu",
             18, 92
         );
     }
@@ -385,4 +414,3 @@ public class CampaignPanel extends JPanel {
         showInFrame(Flavor.CHOCOLATE, null);
     }
 }
-

@@ -1,10 +1,11 @@
 package presentation;
 
 import domain.Flavor;
-
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
 
 public class GameSetupFrame extends JFrame {
 
@@ -13,56 +14,138 @@ public class GameSetupFrame extends JFrame {
     private Flavor flavor1 = Flavor.CHOCOLATE;
     private Flavor flavor2 = Flavor.STRAWBERRY;
 
-    private final JPanel selection = new JPanel();
-    private final JButton onePlayer = new JButton("1 JUGADOR");
-    private final JButton twoPlayers = new JButton("2 JUGADORES");
+    private JPanel cards;
+    private JButton onePlayer;
+    private JButton twoPlayers;
 
-    private final Color background = new Color(19, 42, 72);
-    private final Color accent = new Color(50, 145, 195);
+    private Font pixelFont;
+    private Font pixelTitle;
+
+    private final Color darkText = new Color(34, 29, 53);
 
     public GameSetupFrame() {
-        setTitle("Bad DOPO Cream - Configurar partida");
-        setSize(800, 650);
-        setLocationRelativeTo(null);
-        setResizable(false);
+        setTitle("Bad DOPO Cream - Seleccion de personajes");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setResizable(false);
 
-        JPanel root = new JPanel(new BorderLayout(15, 15));
-        root.setBackground(background);
-        root.setBorder(new EmptyBorder(20, 30, 20, 30));
+        loadFonts();
+        createInterface();
+
+        pack();
+        setLocationRelativeTo(null);
+        setVisible(true);
+    }
+
+    private void loadFonts() {
+        Font loaded = null;
+
+        String[] paths = {
+            "resources/font.ttf",
+            "resources/fonts/font.ttf",
+            "resources/fonts/PressStart2P-Regular.ttf",
+            "resources/PressStart2P-Regular.ttf"
+        };
+
+        for (String path : paths) {
+            File file = new File(path);
+
+            if (!file.isFile()) {
+                continue;
+            }
+
+            try {
+                loaded = Font.createFont(
+                    Font.TRUETYPE_FONT, file
+                );
+                break;
+            } catch (Exception e) {
+                System.err.println(
+                    "No se pudo cargar fuente: " + path
+                );
+            }
+        }
+
+        if (loaded == null) {
+            loaded = new Font(
+                Font.MONOSPACED, Font.BOLD, 16
+            );
+        }
+
+        pixelFont = loaded.deriveFont(Font.BOLD, 13f);
+        pixelTitle = loaded.deriveFont(Font.BOLD, 23f);
+    }
+
+    private void createInterface() {
+
+        JPanel background = new JPanel(new BorderLayout(16, 16)) {
+            @Override
+            protected void paintComponent(Graphics graphics) {
+                super.paintComponent(graphics);
+
+                Graphics2D g = (Graphics2D) graphics.create();
+
+                BufferedImage image =
+                    SpriteManager.loadBackground("backgr");
+
+                if (image != null) {
+                    g.drawImage(
+                        image,
+                        0, 0,
+                        getWidth(), getHeight(),
+                        null
+                    );
+                } else {
+                    g.setColor(new Color(226, 246, 255));
+                    g.fillRect(
+                        0, 0, getWidth(), getHeight()
+                    );
+                }
+
+                g.dispose();
+            }
+        };
+
+        background.setPreferredSize(new Dimension(950, 720));
+        background.setBorder(
+            new EmptyBorder(30, 45, 28, 45)
+        );
+
+        setContentPane(background);
+
+        JPanel header = new JPanel(new BorderLayout(12, 16));
+        header.setOpaque(false);
 
         JLabel title = new JLabel(
-            "BAD DOPO CREAM", SwingConstants.CENTER
-        );
-        title.setFont(new Font(
-            "SansSerif", Font.BOLD, 36
-        ));
-        title.setForeground(Color.WHITE);
-
-        JLabel subtitle = new JLabel(
-            "ELIGE TUS JUGADORES",
+            "SELECCIONA TU PERSONAJE",
             SwingConstants.CENTER
         );
-        subtitle.setForeground(new Color(170, 225, 255));
 
-        JPanel header = new JPanel(new GridLayout(2, 1));
-        header.setOpaque(false);
-        header.add(title);
-        header.add(subtitle);
+        title.setFont(pixelTitle);
+        title.setForeground(Color.WHITE);
+        title.setOpaque(true);
+        title.setBackground(new Color(12, 64, 117));
 
-        root.add(header, BorderLayout.NORTH);
+        title.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(
+                    new Color(54, 178, 244), 4
+                ),
+                new EmptyBorder(14, 8, 14, 8)
+            )
+        );
 
-        JPanel center = new JPanel(new BorderLayout(12, 12));
-        center.setOpaque(false);
+        header.add(title, BorderLayout.NORTH);
 
-        JPanel modes = new JPanel(new GridLayout(1, 2, 12, 0));
+        JPanel modes = new JPanel(new GridLayout(1, 2, 30, 0));
         modes.setOpaque(false);
 
-        style(onePlayer);
-        style(twoPlayers);
+        onePlayer = SpriteManager.imageButton(
+            "1 Player.png", "1 JUGADOR", 245, 58
+        );
 
-        modes.add(onePlayer);
-        modes.add(twoPlayers);
+        twoPlayers = SpriteManager.imageButton(
+            "2 Player.png", "2 JUGADORES", 245, 58
+        );
 
         onePlayer.addActionListener(e -> {
             playerCount = 1;
@@ -74,22 +157,27 @@ public class GameSetupFrame extends JFrame {
             refresh();
         });
 
-        center.add(modes, BorderLayout.NORTH);
+        modes.add(onePlayer);
+        modes.add(twoPlayers);
 
-        selection.setLayout(new GridLayout(1, 2, 12, 0));
-        selection.setOpaque(false);
-        center.add(selection, BorderLayout.CENTER);
+        header.add(modes, BorderLayout.SOUTH);
+        background.add(header, BorderLayout.NORTH);
 
-        root.add(center, BorderLayout.CENTER);
+        cards = new JPanel(new GridLayout(1, 2, 25, 0));
+        cards.setOpaque(false);
 
-        JPanel footer = new JPanel(new GridLayout(1, 2, 12, 0));
+        background.add(cards, BorderLayout.CENTER);
+
+        JPanel footer = new JPanel(new GridLayout(1, 2, 30, 0));
         footer.setOpaque(false);
 
-        JButton back = new JButton("VOLVER");
-        JButton start = new JButton("COMENZAR PARTIDA");
+        JButton back = SpriteManager.imageButton(
+            "Back.png", "VOLVER", 240, 65
+        );
 
-        style(back);
-        style(start);
+        JButton start = SpriteManager.imageButton(
+            "Start Game.png", "JUGAR", 240, 65
+        );
 
         back.addActionListener(e -> {
             dispose();
@@ -106,38 +194,79 @@ public class GameSetupFrame extends JFrame {
 
         footer.add(back);
         footer.add(start);
-        root.add(footer, BorderLayout.SOUTH);
 
-        setContentPane(root);
+        background.add(footer, BorderLayout.SOUTH);
+
         refresh();
-        setVisible(true);
     }
 
-    private void style(JButton button) {
-        button.setFont(new Font(
-            "SansSerif", Font.BOLD, 15
-        ));
-        button.setBackground(accent);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setCursor(
-            Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+    private JPanel iceCard() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10)) {
+            @Override
+            protected void paintComponent(Graphics graphics) {
+                super.paintComponent(graphics);
+
+                Graphics2D g = (Graphics2D) graphics.create();
+
+                g.setColor(new Color(218, 245, 255, 225));
+                g.fillRoundRect(
+                    4, 4,
+                    getWidth() - 8,
+                    getHeight() - 8,
+                    20, 20
+                );
+
+                g.setColor(new Color(36, 151, 218));
+                g.setStroke(new BasicStroke(4));
+
+                g.drawRoundRect(
+                    4, 4,
+                    getWidth() - 9,
+                    getHeight() - 9,
+                    20, 20
+                );
+
+                g.setColor(new Color(255, 255, 255, 160));
+                g.fillRoundRect(
+                    14, 14,
+                    getWidth() - 28,
+                    12,
+                    10, 10
+                );
+
+                g.dispose();
+            }
+        };
+
+        panel.setOpaque(false);
+        panel.setBorder(
+            new EmptyBorder(22, 20, 22, 20)
         );
-        button.setBorder(new EmptyBorder(12, 8, 12, 8));
+
+        return panel;
     }
 
     private JPanel playerCard(int number) {
-        JPanel card = new JPanel(new BorderLayout(8, 8));
-        card.setBackground(new Color(32, 70, 109));
-        card.setBorder(new EmptyBorder(12, 12, 12, 12));
+        JPanel card = iceCard();
 
         JLabel label = new JLabel(
-            "JUGADOR " + number, SwingConstants.CENTER
+            "JUGADOR " + number,
+            SwingConstants.CENTER
         );
+
+        label.setFont(pixelFont.deriveFont(17f));
         label.setForeground(Color.WHITE);
-        label.setFont(new Font(
-            "SansSerif", Font.BOLD, 20
-        ));
+        label.setOpaque(true);
+        label.setBackground(new Color(13, 83, 145));
+
+        label.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(
+                    new Color(58, 178, 240), 3
+                ),
+                new EmptyBorder(12, 5, 12, 5)
+            )
+        );
 
         card.add(label, BorderLayout.NORTH);
 
@@ -150,15 +279,26 @@ public class GameSetupFrame extends JFrame {
 
                 Graphics2D g = (Graphics2D) graphics.create();
 
-                int size = 145;
-                int x = (getWidth() - size) / 2;
-                int y = (getHeight() - size) / 2;
-
-                SpriteManager.draw(
-                    g,
-                    SpriteManager.playerSprite(current),
-                    x, y, size, size
+                g.setRenderingHint(
+                    RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR
                 );
+
+                int size = Math.min(
+                    185,
+                    Math.min(getWidth(), getHeight()) - 10
+                );
+
+                if (size > 0) {
+                    SpriteManager.draw(
+                        g,
+                        SpriteManager.playerSprite(current),
+                        (getWidth() - size) / 2,
+                        (getHeight() - size) / 2,
+                        size,
+                        size
+                    );
+                }
 
                 g.dispose();
             }
@@ -167,81 +307,178 @@ public class GameSetupFrame extends JFrame {
         preview.setOpaque(false);
         card.add(preview, BorderLayout.CENTER);
 
-        JPanel flavors = new JPanel(new GridLayout(3, 1, 6, 6));
+        JPanel flavors = new JPanel(new GridLayout(3, 1, 4, 4));
         flavors.setOpaque(false);
+        flavors.setPreferredSize(new Dimension(300, 190));
 
-        addFlavor(flavors, "CHOCOLATE", Flavor.CHOCOLATE, number);
-        addFlavor(flavors, "VAINILLA", Flavor.VANILLA, number);
-        addFlavor(flavors, "FRESA", Flavor.STRAWBERRY, number);
+        addFlavorButton(
+            flavors, "CHOCOLATE",
+            Flavor.CHOCOLATE, number
+        );
+
+        addFlavorButton(
+            flavors, "VAINILLA",
+            Flavor.VANILLA, number
+        );
+
+        addFlavorButton(
+            flavors, "FRESA",
+            Flavor.STRAWBERRY, number
+        );
 
         card.add(flavors, BorderLayout.SOUTH);
 
         return card;
     }
 
-    private void addFlavor(
-            JPanel container, String label,
-            Flavor flavor, int player) {
+    private void addFlavorButton(
+            JPanel container,
+            String text,
+            Flavor flavor,
+            int number) {
 
-        JButton button = new JButton(label);
-        style(button);
-
-        Flavor selected = player == 1 ? flavor1 : flavor2;
-
-        if (selected == flavor) {
-            button.setBackground(new Color(39, 172, 126));
+        String filename;
+        
+        if (flavor == Flavor.CHOCOLATE) {
+            filename = "btnChocolate.png";
+        } 
+        else if (flavor == Flavor.VANILLA) {
+            filename = "btnVainilla.png";
+        } 
+        else if (flavor == Flavor.STRAWBERRY) {
+            filename = "btnFresa.png";
+        } 
+        else {
+            throw new IllegalArgumentException(
+                "Sabor no soportado: " + flavor
+            );
         }
 
+        JButton button = new JButton() {
+
+            @Override
+            protected void paintComponent(Graphics graphics) {
+                Graphics2D g = (Graphics2D) graphics.create();
+
+                g.setRenderingHint(
+                    RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BILINEAR
+                );
+
+                BufferedImage image = SpriteManager.load(filename);
+
+                if (image != null) {
+                    int margin = 8;
+
+                    int availableWidth = getWidth() - margin * 2;
+                    int availableHeight = getHeight() - margin * 2;
+
+                    double scale = Math.min(
+                        (double) availableWidth / image.getWidth(),
+                        (double) availableHeight / image.getHeight()
+                    );
+
+                    int width = (int) (image.getWidth() * scale);
+                    int height = (int) (image.getHeight() * scale);
+
+                    int x = (getWidth() - width) / 2;
+                    int y = (getHeight() - height) / 2;
+
+                    g.drawImage(
+                        image, x, y, width, height, null
+                    );
+
+                    Flavor selected =
+                        number == 1 ? flavor1 : flavor2;
+
+                    if (selected == flavor) {
+                        g.setColor(new Color(255, 210, 40));
+                        g.setStroke(new BasicStroke(3));
+
+                        g.drawRoundRect(
+                            x - 3, y - 3,
+                            width + 6, height + 6,
+                            10, 10
+                        );
+                    }
+                } else {
+                    g.setColor(darkText);
+                    g.setFont(pixelFont);
+
+                    FontMetrics metrics = g.getFontMetrics();
+
+                    g.drawString(
+                        text,
+                        (getWidth() - metrics.stringWidth(text)) / 2,
+                        getHeight() / 2
+                    );
+                }
+
+                g.dispose();
+            }
+        };
+
+        button.setPreferredSize(new Dimension(270, 62));
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setOpaque(false);
+
+        button.setCursor(
+            Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+        );
+
         button.addActionListener(e -> {
-            if (player == 1) {
+            if (number == 1) {
                 flavor1 = flavor;
             } else {
                 flavor2 = flavor;
             }
+
             refresh();
         });
 
         container.add(button);
     }
 
+    private JPanel individualCard() {
+        JPanel card = iceCard();
+        card.setLayout(new GridBagLayout());
+
+        JLabel info = new JLabel(
+            "<html><center>"
+            + "MODO INDIVIDUAL"
+            + "<br><br>"
+            + "4 NIVELES"
+            + "<br><br>"
+            + "ENEMIGOS AUTOMATICOS"
+            + "<br><br>"
+            + "MAPAS ALEATORIOS"
+            + "</center></html>",
+            SwingConstants.CENTER
+        );
+
+        info.setFont(pixelFont);
+        info.setForeground(darkText);
+
+        card.add(info);
+        return card;
+    }
+
     private void refresh() {
-        selection.removeAll();
-        selection.add(playerCard(1));
+        cards.removeAll();
+
+        cards.add(playerCard(1));
 
         if (playerCount == 2) {
-            selection.add(playerCard(2));
+            cards.add(playerCard(2));
         } else {
-            JPanel info = new JPanel(new GridBagLayout());
-            info.setBackground(new Color(32, 70, 109));
-
-            JLabel text = new JLabel(
-                "<html><center>AVENTURA INDIVIDUAL"
-                + "<br><br>4 niveles"
-                + "<br>Enemigos automáticos"
-                + "<br>Mapas aleatorios"
-                + "<br>3 vidas</center></html>"
-            );
-
-            text.setFont(new Font(
-                "SansSerif", Font.BOLD, 18
-            ));
-            text.setForeground(Color.WHITE);
-
-            info.add(text);
-            selection.add(info);
+            cards.add(individualCard());
         }
 
-        onePlayer.setBackground(
-            playerCount == 1
-                ? new Color(39, 172, 126) : accent
-        );
-
-        twoPlayers.setBackground(
-            playerCount == 2
-                ? new Color(39, 172, 126) : accent
-        );
-
-        selection.revalidate();
-        selection.repaint();
+        cards.revalidate();
+        cards.repaint();
     }
 }
+
+
